@@ -1,0 +1,100 @@
+#define BLYNK_TEMPLATE_ID "TMPLEZvBKPyw"
+#define BLYNK_DEVICE_NAME "ultrasonic sensor"
+#define BLYNK_AUTH_TOKEN "dC32CCRfne0aF7V8Z7kLP8ijpiwUZgUQ"
+
+#define BLYNK_PRINT Serial
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+
+#define  trig1  D5
+#define  echo1  D6
+#define  trig2  D0
+#define  echo2  D1
+
+long  duration1;
+long  duration2;
+int  distance1; 
+int  distance2;
+
+// You should get Auth Token in the Blynk App.
+
+char auth[] = BLYNK_AUTH_TOKEN;
+
+// Your WiFi credentials.
+// Set password to "" for open networks.
+char ssid[] = "FTTH";
+char pass[] = "11gao541";
+
+BlynkTimer timer;
+WidgetLCD lcd(V14);
+WidgetLED led1(V13);
+WidgetLED led2(V16);
+void setup()
+{
+  // Debug console
+  pinMode(trig1, OUTPUT);  // Sets the trig1 Pin as an Output
+  pinMode(echo1, INPUT);   // Sets the echo1 Pin as an Input
+  pinMode(trig2, OUTPUT);  // Sets the trig2 Pin as an Output
+  pinMode(echo2, INPUT);   // Sets the echo2 Pin as an Inpu
+  Serial.begin(9600);
+  Blynk.begin(auth, ssid, pass);
+  // Setup a function to be called every seco2nd
+  timer.setInterval(1000L, sendSensor);
+}
+
+void loop()
+{
+  Blynk.run();
+  timer.run();
+}
+void sendSensor()
+{
+  digitalWrite(trig1, LOW);   // Makes trig1 Pin low
+  delayMicroseconds(2);       // 2 micro second delay
+ 
+  digitalWrite(trig1, HIGH);  // trig1 Pin high
+  delayMicroseconds(10);      // trig1 Pin high for 10 micro seconds
+  digitalWrite(trig1, LOW);   // trig1 Pin low
+
+  duration1 = pulseIn(echo1, HIGH);   //Read echo1 pin, time in microseconds
+  distance1 = duration1 * 0.034 / 2;   //Calculating actual/real distance
+  Serial.print("Distance 1: ");
+  Serial.println(distance1);
+
+  if(distance1 < 10)
+  {
+    led1.on();
+  }
+  else
+  {
+    led1.off();
+  }
+  
+  Blynk.virtualWrite(V0, distance1);  
+
+  
+  digitalWrite(trig2, LOW);   // Makes trig2 Pin low
+  delayMicroseconds(2);       // 2 micro second delay
+  
+  digitalWrite(trig2, HIGH);  // trig2 Pin high
+  delayMicroseconds(10);      // trig2 Pin high for 10 micro seconds
+  digitalWrite(trig2, LOW);   // trig2 Pin low  
+  duration2 = pulseIn(echo2, HIGH);   //Read echo2 pin, time in microseconds
+  distance2 = duration2 * 0.034 / 2;   //Calculating actual/real distance
+  Serial.print("Distance 2: ");
+  Serial.println(distance2);
+  
+  if(distance2 < 10)
+  {
+    led2.on();
+  }
+  else
+  {
+    led2.off();
+  }  
+
+  Blynk.virtualWrite(V15, distance2); 
+
+  lcd.print(0, 0, "Parking lot");
+  delay(1000);
+}
